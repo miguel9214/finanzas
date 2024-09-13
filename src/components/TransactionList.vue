@@ -53,3 +53,7 @@
   };
   </script>
   
+  <style scoped>
+  /* Agrega estilos personalizados aquí */
+  </style>
+  

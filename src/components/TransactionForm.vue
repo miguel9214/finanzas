@@ -38,42 +38,38 @@
         type: '',
         amount: '',
         description: '',
-        category: '',
-        error: null // Para almacenar errores
+        category: ''
       };
     },
     methods: {
       async addTransaction() {
-        this.error = null; // Reiniciar errores
-  
+        const collectionName = this.type === 'Ingreso' ? 'incomes' : 'expenses';
+        
         try {
-          // Validar que todos los campos estén llenos
-          if (!this.type || !this.amount || !this.description || !this.category) {
-            this.error = 'Todos los campos son obligatorios.';
-            return;
-          }
-  
-          // Agregar la transacción a la colección correspondiente
-          await addDoc(collection(db, this.type === 'Ingreso' ? 'incomes' : 'expenses'), {
-            amount: parseFloat(this.amount), // Asegúrate de que amount sea un número
+          await addDoc(collection(db, collectionName), {
+            amount: this.amount,
             description: this.description,
             category: this.category,
-            date: new Date()
+            date: new Date(),
+            type: this.type // Asegúrate de que el tipo está incluido
           });
-  
-          // Limpiar el formulario después de agregar
-          this.type = '';
-          this.amount = '';
-          this.description = '';
-          this.category = '';
-  
-          alert('Transacción agregada con éxito!');
+          alert('Transacción agregada!');
+          this.resetForm();
         } catch (error) {
-          console.error('Error agregando transacción: ', error);
-          this.error = 'Hubo un problema al agregar la transacción. Inténtalo de nuevo.';
+          console.error('Error al agregar la transacción:', error);
         }
+      },
+      resetForm() {
+        this.type = '';
+        this.amount = '';
+        this.description = '';
+        this.category = '';
       }
     }
   };
   </script>
+  
+  <style scoped>
+  /* Agrega estilos personalizados aquí */
+  </style>
   
