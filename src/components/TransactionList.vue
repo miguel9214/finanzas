@@ -27,7 +27,7 @@
   
   <script>
   import { db } from '../firebase'; // Configuración de Firebase
-  import { collection, getDocs } from 'firebase/firestore';
+  import { collection, onSnapshot } from 'firebase/firestore';
   
   export default {
     data() {
@@ -35,19 +35,32 @@
         transactions: []
       };
     },
-    async created() {
-      try {
-        const expensesSnapshot = await getDocs(collection(db, 'expenses'));
-        const incomesSnapshot = await getDocs(collection(db, 'incomes'));
+    created() {
+      // Escuchar cambios en las colecciones de gastos e ingresos
+      this.unsubscribeExpenses = onSnapshot(collection(db, 'expenses'), (snapshot) => {
+        const expenses = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.updateTransactions(expenses, 'expenses');
+      });
   
-        // Combine data from both collections
-        const expenses = expensesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        const incomes = incomesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        
-        // Merge into a single array
-        this.transactions = [...expenses, ...incomes];
-      } catch (error) {
-        console.error('Error al obtener las transacciones:', error);
+      this.unsubscribeIncomes = onSnapshot(collection(db, 'incomes'), (snapshot) => {
+        const incomes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.updateTransactions(incomes, 'incomes');
+      });
+    },
+    beforeDestroy() {
+      // Detener la escucha cuando el componente se destruya
+      if (this.unsubscribeExpenses) this.unsubscribeExpenses();
+      if (this.unsubscribeIncomes) this.unsubscribeIncomes();
+    },
+    methods: {
+      updateTransactions(newData, type) {
+        if (type === 'expenses') {
+          const incomes = this.transactions.filter(t => t.type === 'Ingreso');
+          this.transactions = [...newData, ...incomes];
+        } else if (type === 'incomes') {
+          const expenses = this.transactions.filter(t => t.type === 'Gasto');
+          this.transactions = [...expenses, ...newData];
+        }
       }
     }
   };
