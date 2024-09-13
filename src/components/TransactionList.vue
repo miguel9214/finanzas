@@ -13,8 +13,8 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="transaction in transactions" :key="transaction.id">
-            <td>{{ transaction.type }}</td>
+          <tr v-for="transaction in paginatedTransactions" :key="transaction.id">
+            <td :class="getTypeClass(transaction.type)">{{ transaction.type }}</td>
             <td>{{ transaction.amount }}</td>
             <td>{{ transaction.description }}</td>
             <td>{{ transaction.category }}</td>
@@ -22,6 +22,21 @@
           </tr>
         </tbody>
       </table>
+  
+      <!-- Paginador -->
+      <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" :class="{ disabled: currentPage === 1 }">
+            <a class="page-link" href="#" @click.prevent="prevPage">Anterior</a>
+          </li>
+          <li class="page-item" :class="{ active: currentPage === i }" v-for="i in totalPages" :key="i">
+            <a class="page-link" href="#" @click.prevent="goToPage(i)">{{ i }}</a>
+          </li>
+          <li class="page-item" :class="{ disabled: currentPage === totalPages }">
+            <a class="page-link" href="#" @click.prevent="nextPage">Siguiente</a>
+          </li>
+        </ul>
+      </nav>
     </div>
   </template>
   
@@ -32,8 +47,20 @@
   export default {
     data() {
       return {
-        transactions: []
+        transactions: [],
+        currentPage: 1,
+        pageSize: 10 // Número de registros por página
       };
+    },
+    computed: {
+      paginatedTransactions() {
+        const start = (this.currentPage - 1) * this.pageSize;
+        const end = start + this.pageSize;
+        return this.transactions.slice(start, end);
+      },
+      totalPages() {
+        return Math.ceil(this.transactions.length / this.pageSize);
+      }
     },
     created() {
       // Escuchar cambios en las colecciones de gastos e ingresos
@@ -61,12 +88,40 @@
           const expenses = this.transactions.filter(t => t.type === 'Gasto');
           this.transactions = [...expenses, ...newData];
         }
+      },
+      getTypeClass(type) {
+        return type === 'Gasto' ? 'text-danger' : 'text-success'; // Clases CSS para color
+      },
+      prevPage() {
+        if (this.currentPage > 1) {
+          this.currentPage--;
+        }
+      },
+      nextPage() {
+        if (this.currentPage < this.totalPages) {
+          this.currentPage++;
+        }
+      },
+      goToPage(page) {
+        this.currentPage = page;
       }
     }
   };
   </script>
   
   <style scoped>
-  /* Agrega estilos personalizados aquí */
+  /* Estilos de paginación */
+  .pagination {
+    margin-top: 20px;
+  }
+  
+  /* Colores personalizados para los tipos de transacciones */
+  .text-success {
+    color: #28a745; /* Verde para Ingreso */
+  }
+  
+  .text-danger {
+    color: #dc3545; /* Rojo para Gasto */
+  }
   </style>
   
