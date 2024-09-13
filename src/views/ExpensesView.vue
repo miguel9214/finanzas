@@ -1,6 +1,6 @@
 <template>
     <div class="container mt-4">
-      <h1 class="text-center">Gestión de Gastos</h1>
+      <h1 class="text-center">Transacciones</h1>
       <TransactionForm />
       <TransactionList :transactions="expenses" />
     </div>
